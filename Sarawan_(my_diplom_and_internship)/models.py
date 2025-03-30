@@ -11,9 +11,7 @@ import math
 
 
 
-
 class ArcMarginProduct(nn.Module):
-    
     def __init__(self, in_features, out_features, s=30.0, m=0.50, easy_margin=False):
         super(ArcMarginProduct, self).__init__()
         self.in_features = in_features
@@ -29,6 +27,7 @@ class ArcMarginProduct(nn.Module):
         self.th = math.cos(math.pi - m)
         self.mm = math.sin(math.pi - m) * m
 
+    
     def forward(self, input, label):
         # --------------------------- cos(theta) & phi(theta) ---------------------------
         cosine = F.linear(F.normalize(input), F.normalize(self.weight))
@@ -44,9 +43,7 @@ class ArcMarginProduct(nn.Module):
         # -------------torch.where(out_i = {x_i if condition_i else y_i) -------------
         output = (one_hot * phi) + ((1.0 - one_hot) * cosine)  # you can use torch.where if your torch.__version__ is 0.4
         output *= self.s
-        
         return output
-
 
 
 
@@ -63,6 +60,7 @@ class NameBert(nn.Module):
         for param in self.m.classifier.parameters():
             param.requires_grad = True
 
+    
     def forward(self, text):
         # на вход подаётся уже токенизированный текст
 
@@ -75,9 +73,7 @@ class NameBert(nn.Module):
 
 
 
-
 class AttributeBert(nn.Module):
-
     def __init__(self, count_cat):
         super().__init__()
         self.m = BertForSequenceClassification.from_pretrained('cointegrated/rubert-tiny2')
@@ -89,6 +85,7 @@ class AttributeBert(nn.Module):
         for param in self.m.classifier.parameters():
             param.requires_grad = True
 
+    
     def forward(self, text):
         # на вход подаётся уже токенизированный текст
 
@@ -98,8 +95,6 @@ class AttributeBert(nn.Module):
         embeddings = model_output.hidden_states[-1][:, 0, :]
         embeddings = torch.nn.functional.normalize(embeddings)
         return embeddings.detach()
-
-
 
 
 
@@ -116,6 +111,7 @@ class CNN(nn.Module):
             param.requires_grad = True
         self.device = device
 
+    
     def forward(self, img):
         embedding = self.get_embedding(img)
 
@@ -135,10 +131,7 @@ class CNN(nn.Module):
 
         # attach hook to the penulimate layer
         hook = layer.register_forward_hook(copy_embeddings)
-
-
         self.resnet.eval()
-
         self.resnet(img_tensor)
         list_embeddings = [item for sublist in outputs for item in sublist]
         self.embedding = np.array(list_embeddings)
@@ -149,7 +142,6 @@ class CNN(nn.Module):
 class Embedding(nn.Module):
     def __init__(self):
         super().__init__()
-
 
     def forward(self, name_bert, cnn, name, img, num_features, device):
         name = name_bert(name)
@@ -188,9 +180,7 @@ class Losses:
         self.Accuracy_history = [[], [], [], [], []]
         self.Accuracy_history_val = [[], [], [], [], []]
 
-
-
-
+    
     def append(self, cnn_loss, names_bert_loss, attr_bert_loss, arc_loss,  loss, cnn_outputs, names_bert_outputs, attr_bert_outputs, output, labels_cat1, cat1_list, labels_cat2, cat2_list):
         self.losses[0].append(cnn_loss.item())
         self.losses[1].append(names_bert_loss.item())
@@ -205,7 +195,6 @@ class Losses:
         names_bert_accuracy5 = top_k_accuracy_score(labels_cat1.cpu().detach().numpy(), names_bert_outputs.logits.cpu().detach().numpy(), k = 5, labels=cat1_list)
         attr_bert_accuracy5 = top_k_accuracy_score(labels_cat1.cpu().detach().numpy(), attr_bert_outputs.logits.cpu().detach().numpy(), k = 5, labels=cat1_list)
 
-
         self.acc[0].append(cnn_accuracy1.item())
         self.acc[1].append(names_bert_accuracy1.item())
         self.acc[2].append(attr_bert_accuracy1.item())
@@ -214,10 +203,8 @@ class Losses:
         self.acc5[1].append(names_bert_accuracy5.item())
         self.acc5[2].append(attr_bert_accuracy5.item())
 
-
         arc_accuracy1 = top_k_accuracy_score(labels_cat2.cpu().detach().numpy(), output.cpu().detach().numpy(), k = 1, labels=cat2_list)
         arc_accuracy5 = top_k_accuracy_score(labels_cat2.cpu().detach().numpy(), output.cpu().detach().numpy(), k = 5, labels=cat2_list)
-
 
         self.losses[3].append(arc_loss.item())
         self.losses[4].append(loss.item())
