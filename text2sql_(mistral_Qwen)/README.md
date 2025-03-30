@@ -1,4 +1,4 @@
-text2sql
+text2sql\n
 There is data provided by the company in the "db" folder.
 The program generates SQL code to obtain the necessary data from the database.
 The SQLite database is used, the text is vectorized using the "Qwen/Qwen2-1.5B-Instruct" model.
