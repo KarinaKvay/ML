@@ -12,4 +12,4 @@ The Neon database is used, the text is vectorized using the MistralAIEmbeddings.
 The Qwen model produces an answer using the received SQL code.<br>
 
 *To use the code for your own purposes, you must add YOUR API KEY and YOUR HUGGINGFACE TOKEN.<br>
-*In the code, tokenizer is not passed to the generate_answer function. In order for the model to generate not only SQL code, but also data using SQL, this part of the code should be corrected.
+*In the code, tokenizer is not passed to the generate_answer() function. In order for the model to generate not only SQL code, but also data using SQL, this part of the code should be corrected.
