@@ -10,8 +10,6 @@ import os
 
 
 
-
-
 class DataPreparation():
 
     def __init__(self, data):
@@ -19,7 +17,6 @@ class DataPreparation():
 
     def prepare(self):
         pass
-
 
 
 class CustomMatchingDataset(Dataset):
@@ -64,6 +61,3 @@ class CustomMatchingDataset(Dataset):
         attribute = self.attributes.iloc[idx]
 
         return name, attribute, image, idx, label_cat1, label_cat2
-    
-
-
