@@ -6,4 +6,4 @@ The task of the model: finding such products in order to offer the user only the
 Modified model architecture:
 ![image](https://github.com/user-attachments/assets/fefa38eb-b7cb-416b-8f7f-18a6b0988fd9)
 
-You can see the project in more detail in the diplom.docx.
+You can see the project in more detail in the diplom.docx and diplom_presentation.pdf.
