@@ -9,7 +9,6 @@ import numpy as np
 import os
 
 
-
 class DataPreparation():
 
     def __init__(self, data):
@@ -23,7 +22,6 @@ class CustomMatchingDataset(Dataset):
     def __init__(self, data, img_dir):
         self.le_cat1 = LabelEncoder()
         self.le_cat2 = LabelEncoder()
-
 
         data['cat1_enc'] = self.le_cat1.fit_transform(data['cat1'].values)
         data['cat2_enc'] = self.le_cat2.fit_transform(data['cat2'].values)
@@ -47,10 +45,10 @@ class CustomMatchingDataset(Dataset):
     def __len__(self):
         return len(self.images)
 
+    
     def __getitem__(self, idx):
         label_cat1 = self.labels_cat1.iloc[idx]
         label_cat2 = self.labels_cat2.iloc[idx]
-
 
         img_path = os.path.join(self.img_dir, self.images.iloc[idx])
         image = read_image(img_path)
