@@ -52,11 +52,9 @@ class Pipeline():
         main_loss = models.CustomLoss()
         loss_monitor = models.Losses()
         
-
         final_embedding_lenght = cnn.resnet.fc.in_features + names_bert.m.classifier.in_features
         metric_fc = models.ArcMarginProduct(final_embedding_lenght, len(custom_dataset.le_cat2.classes_), s=s, m=m) # cat1_num_classes or cat2_num_classes
                     
-
         cnn_criterion = torch.nn.CrossEntropyLoss()
         names_bert_criterion = torch.nn.CrossEntropyLoss()
         attr_bert_criterion = torch.nn.CrossEntropyLoss()
@@ -93,7 +91,6 @@ class Pipeline():
             names_store = None
             data_with_embeddings = None
             
-        
             for names, attributes, images, index, labels_cat1, labels_cat2 in tqdm(data_loader):
                 
                 names = tokenizer(names, padding=True, truncation=True, return_tensors='pt')
@@ -117,12 +114,10 @@ class Pipeline():
                 names_bert_outputs = names_bert.m(**{k: v.to(self.device) for k, v in names.to(self.device).items()})
                 attr_bert_outputs = attr_bert.m(**{k: v.to(self.device) for k, v in attributes.to(self.device).items()})
 
-
                 # считаем лоссы на кат1
                 cnn_loss = cnn_criterion(cnn_outputs.to(self.device), labels_cat1.to(self.device))
                 names_bert_loss = names_bert_criterion(names_bert_outputs.logits.to(self.device), labels_cat1.to(self.device))
                 attr_bert_loss = attr_bert_criterion(attr_bert_outputs.logits.to(self.device), labels_cat1.to(self.device))
-
 
                 cnn_loss.backward(retain_graph=True)
                 names_bert_loss.backward(retain_graph=True)
@@ -147,7 +142,6 @@ class Pipeline():
                                     labels_cat1, cat1_list,
                                      labels_cat2, cat2_list)
 
-
                 optimizer1.step()
                 optimizer2.step()
                 optimizer3.step()
@@ -169,7 +163,6 @@ class Pipeline():
                         data['emb_attr'] = [emb_attr[i] for i in range(len(emb_attr))]
                         data_with_embeddings = pd.concat((data_with_embeddings, data), axis=0)
                         
-
             with open('loss.txt', 'a') as f:
                 f.write(f"Epoch [{epoch}], img_loss: {mean(loss_monitor.losses[0][-n_batches:])}, attr_loss: {mean(loss_monitor.losses[2][-n_batches:])}, names_bert_loss: {mean(loss_monitor.losses[1][-n_batches:])}, arc_loss: {mean(loss_monitor.losses[3][-n_batches:])}, main_loss: {mean(loss_monitor.losses[4][-n_batches:])}\n")
                 f.write(f"Epoch [{epoch}], img_accuracy1: {mean(loss_monitor.acc[0][-n_batches:])}, attr_accuracy1: {mean(loss_monitor.acc[2][-n_batches:])}, names_bert_accuracy1: {mean(loss_monitor.acc[1][-n_batches:])}, arc_accuracy1: {mean(loss_monitor.acc[3][-n_batches:])}\n")
@@ -192,7 +185,6 @@ class Pipeline():
         if data is None:
             data = self.data
 
-
         custom_dataset = dataset.CustomMatchingDataset(data=data, img_dir=self.img_dir)
         data_loader = torch.utils.data.DataLoader(custom_dataset, batch_size=batch_size, shuffle=False)
 
@@ -213,11 +205,9 @@ class Pipeline():
             name_bert.m.load_state_dict(torch.load(self.MODELS + "test/names_bert.pth"))
             attr_bert.m.load_state_dict(torch.load(self.MODELS + "test/attr_bert.pth"))
 
-        
         except Exception as e:
             print(e, f'\n\n Сначала обучите или поместите модели в {self.MODELS}')
             return    
-
 
         self.data_with_embeddings = None
         for name, attribute, image, index, _, _ in tqdm(data_loader):
@@ -229,7 +219,6 @@ class Pipeline():
             attr_bert_outputs = attr_bert.m(**{k: v.to(self.device) for k, v in attribute.to(self.device).items()})
             emb_main = emb_main.cpu().detach().numpy()
             emb_attr = attr_bert_outputs.logits.cpu().detach().numpy()
-
             data = pd.DataFrame(self.data.loc[index.cpu().detach().numpy(), :])
 
             if self.data_with_embeddings is None:
@@ -242,22 +231,19 @@ class Pipeline():
                 self.data_with_embeddings = pd.concat((self.data_with_embeddings, data), axis=0)
 
         self.data_with_embeddings.to_json(self.DATA + 'data_with_embeddings.json')
-
         similar_products, count_in_cats = self.look_for_identical_products_main(self.data_with_embeddings, first_threshold)
         identical_products = self.attribute_identical_search(similar_products, last_threshold)
 
-      
         print('\n\nНайденные идентичные продукты на 1-ом уровне с threshold = ' + str(first_threshold) + ': ' + str(count_in_cats))
         print('Найденные идентичные продукты на 2-ом уровне с threshold = ' + str(last_threshold) + ': ' + str(len(identical_products)))
-
         return identical_products
 
+    
     def _prepare_data(self, data):
         # Подготовка данных в init
         tranformer = dataset.DataPreparation(data)
         prepared = tranformer.prepare()
         pass
-
 
 
     def extract_zip(self, zip_path):
@@ -266,10 +252,7 @@ class Pipeline():
             zip_ref.extractall('./')
 
 
-
-
     def umap_vector_visualization(self, dataframe:pd.DataFrame, show=None, color=None, dot_size=3, title=None, text=None, write_to_html_path=None):
-
         reducer = UMAP(n_components=3)
         vector = reducer.fit_transform(dataframe) # понижаем размерность
         fig = px.scatter_3d(x=vector[:, 0],
@@ -289,7 +272,6 @@ class Pipeline():
 
 
     def attribute_identical_search(self, identical_products_first, threshold_2):
-       
         identical_products_second = []
         for sim_main, i, j in identical_products_first:
             similarity = cosine_similarity(np.array(self.data_with_embeddings['emb_attr'][i]).reshape(1, -1), np.array(self.data_with_embeddings['emb_attr'][j]).reshape(1, -1))
@@ -322,7 +304,6 @@ class Pipeline():
         return similar_products, count_in_cats
 
 
-
     def _look_for_identical_products_main_optimized_experimental(self, data, threshold):
         count_in_cats = []
         similar_products = []
@@ -338,18 +319,13 @@ class Pipeline():
             similar_indices = [(row, col) for row, col in similar_indices if row < col]  
             similar_products.extend([(row, col) for row, col in similar_indices])
             count_in_cats.append([cat, len(similar_indices)])
-            
         return similar_products, count_in_cats
-
-
 
 
     def _save_everything(self, epoch, data_with_embeddings):
         shutil.copy2('./loss.txt', f'/content/drive/MyDrive/sarawan_data/objs/loss.txt')
         data_with_embeddings.to_json(f'/content/drive/MyDrive/sarawan_data/objs/data_with_embeddings_{epoch}.json')
-
         self.umap_vector_visualization(np.vstack(data_with_embeddings['emb_main'].values), color=data_with_embeddings['cat2'], write_to_html_path=f'/content/drive/MyDrive/sarawan_data/objs/cat1_{epoch}.html')
-
 
 
     def _show_imgs(self, data, index1, index2):
@@ -382,7 +358,6 @@ class Pipeline():
         plt.title(data.loc[index2, 'name'], fontsize=8)
         plt.axis('off')
         plt.show('image.png')
-
 
 
     def clear_images(self):
